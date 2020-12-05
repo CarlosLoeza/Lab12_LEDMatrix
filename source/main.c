@@ -3,12 +3,6 @@
 
 
 
-
-
-
-
-
-
 /*      Author: lab
  *  Partner(s) Name: 
  *      Lab Section:
@@ -106,14 +100,14 @@ int Demo_Tick(int state) {
     // Actions
     switch (state) {
 	case shift:	
-	    if (row == 0xEF && button == 2) { // Reset demo 		    
-		row = set_row;
-	    } else if (row != 0xEF && button == 2) { // Move LED to start of next row
+	    if (set_row == 0xEF && button == 2) { // Reset demo 		    
+		row = 0xEF;
+	    } else if (set_row != 0xEF && button == 2) { // Move LED to start of next row
 		//row = (row << 1) | 0x01;
 		row = set_row ;
 	    } else if (row == 0xFE && button == 1){
 		row = 0xFE;
-	    } else if (row != 0xEF && button == 1){
+	    } else if (row != 0xFE && button == 1){
 		row = set_row | 0x00;
 	    }
 	/*
