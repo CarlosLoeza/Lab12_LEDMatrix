@@ -1,4 +1,10 @@
 
+
+
+
+
+
+
 /*      Author: lab
  *  Partner(s) Name: 
  *      Lab Section:
@@ -76,16 +82,13 @@ void TimerSet(unsigned long M){
 // Period: 100 ms
 //--------------------------------------
 unsigned char set_row;
-unsigned char set_pattern;
 unsigned char button;
-unsigned char btn;
-
 enum Demo_States {shift};
 int Demo_Tick(int state) {
 
     // Local Variables
-    static unsigned char pattern = 0x80;	// LED pattern - 0: LED off; 1: LED on
-    static unsigned char row = 0x00;  	// Row(s) displaying pattern. 
+    static unsigned char pattern = 0xFF;	// LED pattern - 0: LED off; 1: LED on
+    static unsigned char row = 0xFE;  	// Row(s) displaying pattern. 
 							// 0: display pattern on row						// 1: do NOT display pattern on row
     // Transitions
     switch (state) {
@@ -98,7 +101,6 @@ int Demo_Tick(int state) {
     // Actions
     switch (state) {
 	case shift:	
-/*
 	    if (set_row == 0xEF && button == 2) { // Reset demo 		    
 		row = 0xEF;
 	    } else if (set_row != 0xEF && button == 2) { // Move LED to start of next row
@@ -108,19 +110,7 @@ int Demo_Tick(int state) {
 		row = 0xFE;
 	    } else if (row != 0xFE && button == 1){
 		row = set_row;
-	    } 
-*/
-	    //pattern = set_pattern;
-	    if (pattern == 0x01 && button == 3){
-		pattern = 0x01;
-	    } else if (pattern != 0x01 && button == 3){
-		pattern = set_pattern;
-	    } else if (pattern == 0x80 && button == 4){
-		pattern = 0x80;
-	    } else if (pattern != 0x80 && button == 4){
-		pattern = set_pattern;
-	    } 
-	    break;
+	    }
 	
 	default:
 	    break;
@@ -132,7 +122,7 @@ int Demo_Tick(int state) {
 }
 
 //unsigned char set_row;
-enum Change_States {Change_Start, Change_Wait, Change_Decrement, Change_Increment, Change_Right, Change_Left} Change_State;
+enum Change_States {Change_Start, Change_Wait, Change_Decrement, Change_Increment} Change_State;
 
 void Calculate(){
     // Transition
@@ -142,25 +132,17 @@ void Calculate(){
 	    button = 0;
 	    break;
 	case Change_Wait:
-	    if(btn == 0){
-	 	button = 0;
+	    if(PINA == 0){
 		Change_State = Change_Wait;
 	    }
-	    else if (btn == 0x02){
+	    else if (PINA == 0x02){
 		Change_State = Change_Decrement;
 		button = 2;
-     	    } else if (btn == 0x01) {
+     	    } else if (PINA == 0x01) {
 		Change_State = Change_Increment;
 		button = 1;
-	    } else if(btn == 0x04){
-		Change_State = Change_Right;
-		button = 3;
-	    } else if(btn == 0x08){
-		Change_State = Change_Left;
-		button = 4;
 	    }
 	    break;
-
 	case Change_Decrement:
 	    Change_State = Change_Wait;
 	    break;
@@ -168,15 +150,6 @@ void Calculate(){
 	case Change_Increment:
 	    Change_State = Change_Wait;
 	    break;
-
-	case Change_Right:
-	    Change_State = Change_Wait;
-	    break;
-
-	case Change_Left:
-	    Change_State = Change_Wait;
-	    break;
-
 	default:
 	    Change_State = Change_Wait;
 	    break;
@@ -187,26 +160,14 @@ void Calculate(){
 	case Change_Wait:
 	    break;
 	case Change_Decrement:
-	    //if(set_row != 0xEF && button == 2)
-		//set_row = (set_row << 1) | 0x01;
+	    if(set_row != 0xEF && button == 2)
+		set_row = (set_row << 1) | 0x01;
 	    break;
 	case Change_Increment:
-	    //if(set_row != 0xFE && button == 1){
-	 	//set_row = (set_row >> 1) | 0x80;
-	    //}
+	    if(set_row != 0xFE && button == 1){
+	 	set_row = (set_row >> 1) | 0x80;
+	    }
 	    break;
-
-	// Shift column to the right
-	case Change_Right:
-	    if(set_pattern != 0x01 && button == 3)
-		set_pattern = (set_pattern >> 1);
-	    break;
-	// Shift column to the left
-	case Change_Left:
-	    if(set_pattern != 0x80 && button == 4)
-		set_pattern = (set_pattern << 1);
-	    break;
-
 	default:
 	    break;
     }
@@ -218,18 +179,16 @@ int main(void) {
     
     DDRC = 0xFF; PORTC = 0x00;
     DDRD = 0xFF; PORTD = 0x00;
-    DDRA = 0x00; PORTA = 0x0F;
+    DDRA = 0x00; PORTA = 0x03;
 
-    set_row = 0x00;
-    set_pattern = 0x80;
+    set_row = 0xFE;
     Change_State = Change_Start;
 
     int state = 0;
-    TimerSet(100);
+    TimerSet(75);
     TimerOn();
     /* Insert your solution below */
     while (1) {
-	btn = ~PINA & 0x0F;
         Calculate();
 	state = Demo_Tick(state);
 
@@ -238,6 +197,5 @@ int main(void) {
     }
     return 1;
 }
-
 
 
