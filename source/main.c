@@ -1,8 +1,5 @@
 
 
-
-
-
 /*      Author: lab
  *  Partner(s) Name: 
  *      Lab Section:
@@ -80,13 +77,16 @@ void TimerSet(unsigned long M){
 // Period: 100 ms
 //--------------------------------------
 unsigned char set_row;
+unsigned char set_pattern;
 unsigned char button;
+
+
 enum Demo_States {shift};
 int Demo_Tick(int state) {
 
     // Local Variables
-    static unsigned char pattern = 0xFF;	// LED pattern - 0: LED off; 1: LED on
-    static unsigned char row = 0xFE;  	// Row(s) displaying pattern. 
+    static unsigned char pattern = 0x60;	// orig: 0xFF/ change 0x08 LED pattern - 0: LED off; 1: LED on
+    static unsigned char row = 0x00;  		//  orig: 0xFE/ change: 0x00 Row(s) displaying pattern. 
 							// 0: display pattern on row
 							// 1: do NOT display pattern on row
     // Transitions
@@ -109,7 +109,16 @@ int Demo_Tick(int state) {
 		row = 0xFE;
 	    } else if (row != 0xFE && button == 1){
 		row = set_row;
+	    } else if (pattern == 0x01 && button == 3){
+		pattern = 0x01;
+	    } else if (pattern != 0x01 && button == 3){
+		pattern = set_pattern; 
+	    } else if (pattern == 0x01 && button == 4){
+		pattern = 0x01;
+	    } else if (pattern != 0x01 && button == 4){
+		pattern = set_pattern;
 	    }
+	    break;
 	/*
 	    else { // Shift LED one spot to the right on current row
 		pattern >>= 1;
@@ -126,7 +135,7 @@ int Demo_Tick(int state) {
 }
 
 //unsigned char set_row;
-enum Change_States {Change_Start, Change_Wait, Change_Decrement, Change_Increment} Change_State;
+enum Change_States {Change_Start, Change_Wait, Change_Increment, Change_Decrement, Change_Right, Change_Left} Change_State;
 
 void Calculate(){
     // Transition
@@ -135,25 +144,42 @@ void Calculate(){
 	    Change_State = Change_Wait;
 	    button = 0;
 	    break;
+
 	case Change_Wait:
 	    if(PINA == 0){
 		Change_State = Change_Wait;
 	    }
+	    else if (PINA == 0x01) {
+                Change_State = Change_Increment;
+                button = 1;
+            }
 	    else if (PINA == 0x02){
 		Change_State = Change_Decrement;
 		button = 2;
-     	    } else if (PINA == 0x01) {
-		Change_State = Change_Increment;
-		button = 1;
+     	    } 
+	    else if (PINA == 0x04){
+		Change_State = Change_Right;
+		button = 3;
+	    } 
+	    else if (PINA == 0x08){
+		Change_State = Change_Left;
+		button = 4;
 	    }
 	    break;
+
 	case Change_Decrement:
 	    Change_State = Change_Wait;
 	    break;
-
 	case Change_Increment:
 	    Change_State = Change_Wait;
 	    break;
+	case Change_Right:
+	    Change_State = Change_Wait;
+	    break;
+	case Change_Left:
+	    Change_State = Change_Wait;
+	    break;
+	
 	default:
 	    Change_State = Change_Wait;
 	    break;
@@ -163,19 +189,35 @@ void Calculate(){
     switch(Change_State){
 	case Change_Wait:
 	    break;
+	case Change_Increment:
+            if(set_row != 0xFE && button == 1){
+                set_row = (set_row >> 1) | 0x80;
+            }
+            break;
 	case Change_Decrement:
 	    if(set_row != 0xEF && button == 2)
 		set_row = (set_row << 1) | 0x01;
 	    break;
-	case Change_Increment:
-	    if(set_row != 0xFE && button == 1){
-	 	set_row = (set_row >> 1) | 0x80;
-	    }
+
+	case Change_Right:
+	    if(set_pattern != 0x01 && button == 3)
+	    	set_pattern >>=1;
 	    break;
 	default:
 	    break;
     }
 }
+
+/*
+enum Column_States {Column_Start, Column_Increment, Column_Decrement} Column_State;
+
+void Column(){
+    switch(Column_State){
+	case Column_Start:
+	    co
+    }
+}
+*/
 
 
 int main(void) {
@@ -183,9 +225,10 @@ int main(void) {
     
     DDRC = 0xFF; PORTC = 0x00;
     DDRD = 0xFF; PORTD = 0x00;
-    DDRA = 0x00; PORTA = 0x03;
+    DDRA = 0x00; PORTA = 0x0F;
 
-    set_row = 0xFE;
+    set_row = 0x00; //0xFE
+    set_pattern = 0x80;
     Change_State = Change_Start;
 
     int state = 0;

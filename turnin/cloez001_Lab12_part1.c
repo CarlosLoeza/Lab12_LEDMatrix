@@ -87,8 +87,7 @@ int Demo_Tick(int state) {
     // Local Variables
     static unsigned char pattern = 0xFF;	// LED pattern - 0: LED off; 1: LED on
     static unsigned char row = 0xFE;  	// Row(s) displaying pattern. 
-							// 0: display pattern on row
-							// 1: do NOT display pattern on row
+							// 0: display pattern on row						// 1: do NOT display pattern on row
     // Transitions
     switch (state) {
 	case shift:	
@@ -110,12 +109,7 @@ int Demo_Tick(int state) {
 	    } else if (row != 0xFE && button == 1){
 		row = set_row;
 	    }
-	/*
-	    else { // Shift LED one spot to the right on current row
-		pattern >>= 1;
-	    }
-	    break;
-	*/
+	
 	default:
 	    break;
     }
